@@ -1,93 +1,117 @@
-import logo from './logo.svg';
-import axios from 'axios';
-import React, {useState} from "react";
-import {ChakraProvider, extendTheme, Input ,Center, Stack, Divider,Text,Box,Flex, Spacer,
-Card,CardBody,Image, CardFooter,ButtonGroup,Button,Heading, AbsoluteCenter} from "@chakra-ui/react";
-import themes from "./theme";
-
+import React, {useState, useEffect} from 'react';
+import './index.css';
+import axios from "axios";
 
 function App() {
+    const [characterName, setCharacterName] = useState("");
+    const [characterData, setCharacterData] =
+        useState({
+            worldName: "",
+            characterClass: "",
+            characterClassLevel: "",
+            characterLevel: 0,
+            characterGuildName: "",
+            characterImage: "",
+            combatPower: "",
+            characterPopularity: "",
+            stats:
+                [
 
-  const theme = extendTheme(themes)
+                ],
+            // ... Add other data as needed
+        });
+    const [loading, setLoading] = useState(false);
 
-  const [characterName, setCharacterName] = useState("");
+    useEffect(() => {
+        // This is where you would fetch data from the server when the component mounts
+    }, []);
 
-  const handleCharacterNameChange = (event) => {
-    setCharacterName(event.target.value)
-  }
+    const fetchCharacterData = async () => {
+        if(characterName === "") {
+            console.log("Character Name is empty");
+            return;
+
+        }
+        setLoading(true);
+        axios.get("http://localhost:8080/character/overview?characterName="+ characterName)
+            .then((response) => {
+                console.log("Then Response :" + response);
+                const data = response.data;
+                characterData.characterLevel = data.characterBasic.characterLevel;
+                characterData.worldName = data.characterBasic.worldName;
+                characterData.characterClass = data.characterBasic.characterClass;
+                characterData.characterClassLevel = data.characterBasic.characterClassLevel;
+                characterData.characterGuildName = data.characterBasic.characterGuildName;
+                characterData.characterImage = data.characterBasic.characterImage;
+                characterData.combatPower = data.characterBasic.combatPower;
+                characterData.characterPopularity = data.characterBasic.characterPopularity;
+                characterData.stats = data.characterStat.finalStat;
+                setLoading(false);
+            })
+            .catch((error) => {
+                console.log("Error : " + error);
+                setLoading(false);
+            })
+        ;
+
+    }
 
 
-  function fetchCharacterOverview() {
-    axios.get('http://localhost:8080/character/overview?characterName='+characterName)
-      .then(function (response) {
-        console.log(response);
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  }
-    
-  return (
-  <ChakraProvider theme={theme}>
-    <Input  variant={'outline'} placeholder="type character name"
-            value={characterName} onChange={handleCharacterNameChange}></Input>
-    <Divider />
-    <Heading size='2xl'>Character Stat</Heading>
-    <Divider />
-
-
-    <Card maxW='sm'>
-      <Box position='relative' h='50px' borderRadius='lg'>
-        <AbsoluteCenter h="25px" w="50px" bg="gray" borderRadius='lg' color='white'>
-          Lv.224
-        </AbsoluteCenter>
-        <Box p='1' h="30px" w="150px" bg="gray" borderRadius='lg' color='white'>
-          Class
-        </Box>
-      </Box>
-      <Box position='relative' h='50px' borderRadius='lg'>
-        <Text>Flex and Spacer: Full width, equal Spacing</Text>
-        <Flex>
-          <Box w='70px' h='10' bg='red.500'/>
-          <Spacer/>
-          <Box w='170px' h='10' bg='red.500'/>
-          <Spacer/>
-          <Box w='180px' h='10' bg='red.500'/>
-        </Flex>
-      </Box>
-    <CardBody>
-      <Image
-          src='https://images.unsplash.com/photo-1555041469-a586c61ea9bc?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80'
-          alt='Green double couch with wooden legs'
-          borderRadius='lg'
-      />
-      <Stack mt='6' spacing='3'>
-        <Heading size='md'>Living room Sofa</Heading>
-        <Text>
-          This sofa is perfect for modern tropical spaces, baroque inspired
-          spaces, earthy toned spaces and for people who love a chic design with a
-          sprinkle of vintage design.
-        </Text>
-        <Text color='blue.600' fontSize='2xl'>
-          $450
-        </Text>
-      </Stack>
-    </CardBody>
-    <Divider/>
-    <CardFooter>
-      <ButtonGroup spacing='2'>
-        <Button variant='solid' colorScheme='blue'>
-          Buy now
-        </Button>
-        <Button variant='ghost' colorScheme='blue'>
-          Add to cart
-        </Button>
-      </ButtonGroup>
-    </CardFooter>
-  </Card>
-
-  </ChakraProvider>
-  );
+    return (
+        <div className="bg-[#55415f] min-h-screen flex justify-center items-center">
+            <div className="max-w-sm">
+                <div className="flex justify-center mt-4 space-x-2">
+                    <input
+                        type="text"
+                        value={characterData.characterName}
+                        onChange={(e) => setCharacterName(e.target.value)}
+                        placeholder="Character Name"
+                        className="py-2 px-4 rounded border-2 border-[#d77355] focus:outline-none focus:border-[#b56248]"
+                    />
+                    <button
+                        onClick={fetchCharacterData}
+                        className="bg-[#d77355] text-white py-2 px-4 rounded hover:bg-[#b56248]"
+                        disabled={loading}
+                    >
+                        {loading ? 'Loading...' : 'Fetch Stats'}
+                    </button>
+                </div>
+                <div className="bg-[#646964] p-5 rounded-t-lg shadow-lg">
+                    <div className="flex justify-between">
+                        <div>
+                            <p className="text-[#d77355] font-bold">CHARACTER INFO</p>
+                            <p className="text-white text-sm">Lv. {characterData.characterLevel}</p>
+                            <p className="text-white font-bold text-xl">{characterName}</p>
+                            <p className="text-white text-sm">{characterData.characterClass}</p>
+                            <p className="text-white text-sm">{characterData.worldName}</p>
+                        </div>
+                        <img src={characterData.characterImage} alt="https://placehold.co/250x250" className="square-full"/>
+                    </div>
+                    <div className="flex justify-around my-3">
+                        <button className="bg-[#d77355] text-white py-1 px-3 rounded">DETAIL</button>
+                        <button className="bg-[#647c64] text-white py-1 px-3 rounded">STAT</button>
+                    </div>
+                    <div className="bg-[#d6d4e0] p-2">
+                        <div className="bg-white p-3 rounded">
+                            <p className="text-[#646964] text-sm">전투력</p>
+                            <p className="text-[#55415f] text-3xl font-bold">{characterData.combatPower}</p>
+                            {characterData.stats.map((stat) => (
+                                <div key={stat.label} className="flex justify-between my-2">
+                                    <span className="text-[#646964]">{stat.statName}</span>
+                                    <span className="text-[#55415f]">{stat.statValue}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-[#d6d4e0] p-5 rounded-b-lg shadow-lg">
+                    <div className="bg-white p-3 rounded">
+                        {/* Repeat for other character info sections */}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export default App;
